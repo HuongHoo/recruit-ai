@@ -76,12 +76,23 @@
                 });
                 form.addEventListener('submit', async (event) => {
                     event.preventDefault();
-                    const response = await post(@json(route('community.report')), Object.fromEntries(new FormData(form)));
-                    const data = await response.json().catch(() => ({}));
-                    status.textContent = response.ok ? data.message
-                        : (response.status === 429 ? 'Bạn gửi hơi nhiều báo cáo, thử lại sau nhé.' : (data.errors ? Object.values(data.errors)[0][0] : 'Không gửi được báo cáo.'));
-                    status.className = 'text-sm ' + (response.ok ? 'text-emerald-700' : 'text-rose-600');
-                    if (response.ok) setTimeout(() => dialog.close(), 1200);
+                    const submit = form.querySelector('button:not([type=button])');
+                    if (submit.disabled) return;
+                    submit.disabled = true;
+                    let ok = false;
+                    try {
+                        const response = await post(@json(route('community.report')), Object.fromEntries(new FormData(form)));
+                        const data = await response.json().catch(() => ({}));
+                        ok = response.ok;
+                        status.textContent = ok ? data.message
+                            : (response.status === 429 ? 'Bạn gửi hơi nhiều báo cáo, thử lại sau nhé.' : (data.errors ? Object.values(data.errors)[0][0] : 'Không gửi được báo cáo.'));
+                    } catch {
+                        status.textContent = 'Mất kết nối, vui lòng thử lại.';
+                    } finally {
+                        submit.disabled = false;
+                    }
+                    status.className = 'text-sm ' + (ok ? 'text-emerald-700' : 'text-rose-600');
+                    if (ok) setTimeout(() => dialog.close(), 1200);
                 });
             })();
         </script>

@@ -8,10 +8,12 @@
                 <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.8 16.2 8 21l4.2-2.8H19a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v11.2a2 2 0 0 0 2 2h4.8ZM8 9h.01M12 9h.01M16 9h.01"/></svg>
             </span>
             <div class="min-w-0 flex-1">
-                <p class="font-semibold">Trợ lý {{ config('app.name') }}</p>
-                <p class="text-xs text-blue-100">Hỏi về việc làm, CV, phỏng vấn…</p>
+                <p class="truncate font-semibold">Trợ lý {{ config('app.name') }}</p>
+                <p class="truncate text-xs text-blue-100">Hỏi về việc làm, CV, phỏng vấn…</p>
             </div>
-            <button type="button" data-chat-reset class="rounded-lg px-2 py-1 text-xs font-medium text-blue-50 hover:bg-white/15" title="Bắt đầu cuộc trò chuyện mới">Cuộc trò chuyện mới</button>
+            <button type="button" data-chat-reset class="grid size-8 place-items-center rounded-lg hover:bg-white/15" title="Cuộc trò chuyện mới" aria-label="Cuộc trò chuyện mới">
+                <svg class="size-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5M5.1 15a7.5 7.5 0 0 0 13.4 2M18.9 9A7.5 7.5 0 0 0 5.5 7"/></svg>
+            </button>
             <button type="button" data-chat-close class="grid size-8 place-items-center rounded-lg text-xl hover:bg-white/15" aria-label="Đóng">&times;</button>
         </header>
 
@@ -51,7 +53,8 @@
         const endpoint = @json(route('assistant.chat'));
         const csrf = @json(csrf_token());
         const origin = window.location.origin;
-        const STORAGE_KEY = 'recruitment-chat-history';
+        // One history per account (and one for guests), so a shared computer does not show someone else's chat.
+        const STORAGE_KEY = 'recruitment-chat-history:{{ auth()->id() ?? 'guest' }}';
         const MAX_SENT = {{ \App\Http\Requests\ChatAssistantRequest::MAX_MESSAGES }};
         const GREETING = 'Xin chào! Mình là trợ lý của {{ config('app.name') }}. Bạn có thể hỏi mình tìm việc (ví dụ: "việc kế toán ở Hà Nội lương trên 15 triệu"), cách dùng các tính năng, hoặc mẹo viết CV và phỏng vấn nhé.';
 
@@ -71,9 +74,11 @@
             const inline = (line) => line
                 .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
                 .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (match, label, href) => {
-                    const decoded = href.replace(/&amp;/g, '&');
-                    const safe = decoded.startsWith('/') && !decoded.startsWith('//') || decoded.startsWith(origin + '/') || decoded === origin;
-                    return safe ? `<a href="${href}" class="font-semibold text-blue-700 underline">${label}</a>` : label;
+                    // Resolve the link the way the browser would ("/\evil.com" becomes evil.com) and keep it only if it stays on this site.
+                    let url;
+                    try { url = new URL(href.replace(/&amp;/g, '&'), origin); } catch { return label; }
+                    const safe = url.origin === origin && /^https?:$/.test(url.protocol);
+                    return safe ? `<a href="${url.href.replace(/"/g, '%22')}" class="font-semibold text-blue-700 underline">${label}</a>` : label;
                 });
             let html = '';
             let inList = false;

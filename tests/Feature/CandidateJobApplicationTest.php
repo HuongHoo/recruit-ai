@@ -135,7 +135,11 @@ class CandidateJobApplicationTest extends TestCase
         $this->travelBack();
 
         JobPost::factory()->create(['title' => 'Laravel mới']);
-        JobPost::factory()->create(['title' => 'Kế toán mới']);
+        // Fixed text: a random factory template can mention "Laravel" and make this job match too.
+        JobPost::factory()->create([
+            'title' => 'Kế toán mới', 'company_name' => 'Công ty Kế toán An Phát',
+            'description' => 'Lập báo cáo tài chính và kê khai thuế.', 'requirements' => 'Có chứng chỉ kế toán.',
+        ]);
 
         $this->artisan('job-alerts:send')->assertSuccessful();
 

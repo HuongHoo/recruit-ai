@@ -36,6 +36,7 @@ class CommunityReplyCreated extends Notification
             'title' => 'Có người trả lời bình luận của bạn',
             'message' => "{$this->actor->name} trong bài \"".Str::limit($this->post->title, 60).'": '.Str::limit($this->comment->body, 80),
             'url' => route('community.show', $this->post).'#comment-'.$this->comment->id,
+            'community_post_id' => $this->post->id,
         ];
     }
 }

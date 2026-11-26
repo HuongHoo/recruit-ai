@@ -43,7 +43,7 @@ class CommunityComment extends Model
             $post = CommunityPost::query()->lockForUpdate()->find($this->community_post_id);
             if ($post) {
                 $post->comments_count = max(0, $post->comments_count - $removed);
-                $post->save();
+                CommunityPost::withoutTimestamps(fn () => $post->save());
             }
         });
     }

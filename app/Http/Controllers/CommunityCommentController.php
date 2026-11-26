@@ -34,7 +34,7 @@ class CommunityCommentController extends Controller
                 'reply_to_user_id' => $target?->parent_id ? $target->user_id : null,
             ]);
             $comment->author()->associate($user)->save();
-            $post->increment('comments_count');
+            CommunityPost::withoutTimestamps(fn () => $post->increment('comments_count'));
 
             return $comment;
         });

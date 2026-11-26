@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CommunityPost;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -27,6 +28,15 @@ class NotificationController extends Controller
         $notification->markAsRead();
 
         $url = $notification->data['url'] ?? null;
+
+        // A community post can be deleted or hidden after the notification was sent.
+        if (isset($notification->data['community_post_id'])) {
+            $post = CommunityPost::query()->find($notification->data['community_post_id']);
+
+            if (! $post?->isVisibleTo($request->user())) {
+                return redirect()->route('community.index')->with('error', 'Bài viết này đã bị xoá hoặc tạm ẩn.');
+            }
+        }
 
         // Only follow links back into this site.
         return is_string($url) && str_starts_with($url, url('/'))

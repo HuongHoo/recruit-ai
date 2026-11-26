@@ -26,7 +26,7 @@
                 <button class="hover:text-rose-600">Xoá</button>
             </form>
         @endif
-        @if ($viewer && $viewer->id !== $comment->user_id)
+        @if ($viewer?->can('interact', $post) && $viewer->id !== $comment->user_id)
             <button type="button" class="font-normal hover:text-rose-600" data-report="comment" data-report-id="{{ $comment->id }}">Báo cáo</button>
         @endif
     </div>

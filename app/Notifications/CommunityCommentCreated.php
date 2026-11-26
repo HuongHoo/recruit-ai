@@ -36,6 +36,7 @@ class CommunityCommentCreated extends Notification
             'title' => 'Bình luận mới trong bài viết của bạn',
             'message' => "{$this->actor->name} đã bình luận bài \"".Str::limit($this->post->title, 60).'": '.Str::limit($this->comment->body, 80),
             'url' => route('community.show', $this->post).'#comment-'.$this->comment->id,
+            'community_post_id' => $this->post->id,
         ];
     }
 }

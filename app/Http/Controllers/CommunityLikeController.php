@@ -21,7 +21,7 @@ class CommunityLikeController extends Controller
         $liked = DB::transaction(function () use ($request, $post) {
             $changes = $post->likes()->toggle($request->user()->id);
             $post->likes_count = $post->likes()->count();
-            $post->save();
+            CommunityPost::withoutTimestamps(fn () => $post->save()); // updated_at = last edit by the author
 
             return $changes['attached'] !== [];
         });

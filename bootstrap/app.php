@@ -5,6 +5,7 @@ use App\Http\Middleware\EnsureUserHasRole;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -31,4 +32,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(
             fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
         );
+
+        // The upload exceeded PHP's post_max_size. This fires before the session starts (so no flash
+        // messages): send the person back to the page they came from with a flag the form displays.
+        $exceptions->render(function (PostTooLargeException $exception, Request $request) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Tổng dung lượng tải lên quá lớn (tối đa '.ini_get('post_max_size').').'], 413);
+            }
+
+            $back = (string) $request->headers->get('referer');
+            $sameSite = $back !== '' && parse_url($back, PHP_URL_HOST) === $request->getHost();
+
+            return $sameSite
+                ? redirect()->to($back.(str_contains($back, '?') ? '&' : '?').'upload_too_large=1')
+                : null;
+        });
     })->create();

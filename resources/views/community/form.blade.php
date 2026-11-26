@@ -54,10 +54,20 @@
                     </div>
                 @endif
 
+                @php
+                    // PHP drops the whole form when it exceeds post_max_size, so warn before uploading.
+                    $postLimit = (string) ini_get('post_max_size');
+                    $postLimitBytes = (int) $postLimit * match (strtoupper(substr($postLimit, -1))) { 'G' => 1 << 30, 'M' => 1 << 20, 'K' => 1 << 10, default => 1 };
+                @endphp
                 <input type="file" name="images[]" multiple accept="image/jpeg,image/png,image/webp" data-image-input
+                       data-max-total="{{ $postLimitBytes }}" data-max-total-label="{{ $postLimit }}"
                        class="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:font-semibold file:text-blue-700 hover:file:bg-blue-100">
                 <div data-image-preview class="mt-3 grid grid-cols-4 gap-3"></div>
+                <p data-image-warning class="form-error hidden"></p>
                 @error('images') <p class="form-error">{{ $message }}</p> @enderror
+                @if (request()->boolean('upload_too_large'))
+                    <p class="form-error">Tổng dung lượng tải lên vượt quá {{ $postLimit }} nên bài chưa được lưu. Vui lòng chọn ít ảnh hơn hoặc ảnh nhỏ hơn rồi đăng lại.</p>
+                @endif
                 @foreach ($errors->get('images.*') as $messages)
                     <p class="form-error">{{ $messages[0] }}</p>
                 @endforeach
@@ -71,16 +81,30 @@
     </section>
 
     <script>
-        // Thumbnails of the newly chosen images, before upload.
-        document.querySelector('[data-image-input]').addEventListener('change', (event) => {
-            const preview = document.querySelector('[data-image-preview]');
-            preview.replaceChildren();
-            [...event.target.files].forEach((file) => {
-                const img = document.createElement('img');
-                img.src = URL.createObjectURL(file);
-                img.className = 'aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200';
-                preview.append(img);
+        // Thumbnails of the newly chosen images before upload, and a warning when they are too big to send.
+        (() => {
+            const input = document.querySelector('[data-image-input]');
+            const warning = document.querySelector('[data-image-warning]');
+            const tooBig = () => {
+                const limit = Number(input.dataset.maxTotal) * 0.95; // leave room for the text fields
+                const total = [...input.files].reduce((sum, file) => sum + file.size, 0);
+                return limit > 0 && total > limit;
+            };
+            input.addEventListener('change', () => {
+                const preview = document.querySelector('[data-image-preview]');
+                preview.replaceChildren();
+                [...input.files].forEach((file) => {
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(file);
+                    img.className = 'aspect-square w-full rounded-lg object-cover ring-1 ring-slate-200';
+                    preview.append(img);
+                });
+                warning.textContent = `Tổng dung lượng ảnh vượt quá ${input.dataset.maxTotalLabel}. Vui lòng chọn ít ảnh hơn hoặc ảnh nhỏ hơn.`;
+                warning.classList.toggle('hidden', !tooBig());
             });
-        });
+            input.form.addEventListener('submit', (event) => {
+                if (tooBig()) { event.preventDefault(); warning.classList.remove('hidden'); }
+            });
+        })();
     </script>
 @endsection

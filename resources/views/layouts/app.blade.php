@@ -61,6 +61,7 @@
         'building' => 'M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1',
         'shield' => 'M12 3 4 6v6c0 5 3.4 8.5 8 9 4.6-.5 8-4 8-9V6l-8-3Z',
         'chart' => 'M4 20V10m6 10V4m6 16v-7m4 7H2',
+        'chat' => 'M8 10h8M8 14h5m-9 6 3-3h11a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14Z',
         'bell' => 'M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 1 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 1 1-6 0v-1m6 0H9',
         'cog' => 'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm7.4-3a7.4 7.4 0 0 0-.1-1.2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-2-1.2L14.5 3h-4l-.4 2.6a7 7 0 0 0-2 1.2l-2.4-1-2 3.4 2 1.6a7.4 7.4 0 0 0 0 2.4l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 2 1.2l.4 2.6h4l.4-2.6a7 7 0 0 0 2-1.2l2.4 1 2-3.4-2-1.6c.1-.4.1-.8.1-1.2Z',
     ];
@@ -109,7 +110,7 @@
                 ['label' => 'Xác thực công ty', 'icon' => 'building', 'route' => 'admin.companies.index', 'active' => ['admin.companies.*'], 'badge' => \App\Models\Company::query()->where('status', \App\Enums\CompanyStatus::Pending)->count()],
                 ['label' => 'Duyệt tin tuyển dụng', 'icon' => 'shield'],
                 ['label' => 'Bài viết & sự kiện', 'icon' => 'doc', 'route' => 'admin.posts.index', 'active' => ['admin.posts.*']],
-                ['label' => 'Cộng đồng', 'icon' => 'users', 'route' => 'admin.community.index', 'active' => ['admin.community.*'], 'badge' => \App\Models\CommunityReport::query()->whereNull('resolved_at')->count()],
+                ['label' => 'Cộng đồng', 'icon' => 'chat', 'route' => 'admin.community.index', 'active' => ['admin.community.*'], 'badge' => \App\Models\CommunityReport::query()->whereNull('resolved_at')->count()],
                 ['label' => 'Đơn mua gói', 'icon' => 'chart', 'route' => 'admin.orders.index', 'active' => ['admin.orders.*'], 'badge' => \App\Models\Order::query()->where('status', 'pending')->count()],
             ],
             'Hệ thống' => [

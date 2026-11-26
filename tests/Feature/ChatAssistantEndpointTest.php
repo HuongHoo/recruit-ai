@@ -72,6 +72,13 @@ class ChatAssistantEndpointTest extends TestCase
         $this->postJson(route('assistant.chat'), $body)->assertStatus(429);
     }
 
+    public function test_chat_history_is_stored_per_account(): void
+    {
+        $this->get(route('home'))->assertSee("'recruitment-chat-history:guest'", false);
+        $user = User::factory()->candidate()->create();
+        $this->actingAs($user)->get(route('home'))->assertSee("'recruitment-chat-history:{$user->id}'", false);
+    }
+
     public function test_widget_is_on_public_pages_not_admin(): void
     {
         $this->get(route('home'))->assertSee('id="chat-assistant"', false);

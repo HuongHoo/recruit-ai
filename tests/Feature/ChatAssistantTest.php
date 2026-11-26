@@ -78,6 +78,7 @@ class ChatAssistantTest extends TestCase
         $this->assertSame(1, $result['total']);
         $this->assertSame(route('jobs.show', $high), $result['jobs'][0]['url']);
         $this->assertSame('15 - 25 triệu', $result['jobs'][0]['salary']);
+        $this->assertStringContainsString('chưa lọc theo mức lương', $result['reply']);
     }
 
     public function test_no_results_suggests_loosening(): void

@@ -60,6 +60,9 @@ class ChatAssistant
             ? "\n\nTìm thấy {$total} việc phù hợp."
             : "\n\n".self::NO_JOBS;
 
+        if ($search['min_salary'] !== null && $total > 0) {
+            $reply .= ' (Trang "Xem tất cả" chưa lọc theo mức lương, bạn lưu ý nhé.)';
+        }
         unset($search['min_salary']); // The job search page has no salary filter yet.
 
         return [

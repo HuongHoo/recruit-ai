@@ -63,13 +63,16 @@ class CommunitySeeder extends Seeder
                 $root = $post->comments()->make(['body' => $text]);
                 $root->author()->associate($commenter)->save();
 
-                foreach ($replies as $i => [$replier, $replyText]) {
+                // Like the real flow: a later reply answers the reply before it and mentions its author.
+                $previous = null;
+                foreach ($replies as [$replier, $replyText]) {
                     $reply = $post->comments()->make([
                         'body' => $replyText,
                         'parent_id' => $root->id,
-                        'reply_to_user_id' => $i > 0 ? $commenter->id : null,
+                        'reply_to_user_id' => $previous?->id,
                     ]);
                     $reply->author()->associate($replier)->save();
+                    $previous = $replier;
                 }
             }
 
